@@ -16,7 +16,7 @@ from custom_components.enphase_envoy.const import COORDINATOR,DOMAIN,NAME,PLATFO
     PHASE_SENSORS,CONF_SERIAL,READER
 from .envoy_reader import EnvoyReader
 
-SCAN_INTERVAL = timedelta(seconds=10)
+SCAN_INTERVAL = timedelta(seconds=60)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ async def async_setup_entry(hass: HomeAssistant,entry: homeassistant.ConfigEntry
     async def async_update_data():
         """Fetch data from API endpoint."""
         data = {}
-        async with async_timeout.timeout(10):
+        async with async_timeout.timeout(60):
             try:
                 await envoy_reader.getData()
             except httpx.HTTPStatusError as err:
