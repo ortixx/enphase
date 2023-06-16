@@ -215,7 +215,7 @@ class EnvoyReader:
                     headers=self._authorization_header,
                     cookies=self._cookies,
                     json=data,
-                    timeout=10,
+                    timeout=60,
                     **kwargs,
                 )
                 _LOGGER.debug("HTTP PUT %s: %s: %s", url, resp, resp.text)
@@ -234,7 +234,7 @@ class EnvoyReader:
                 "user[email]": self.enlighten_user,
                 "user[password]": self.enlighten_pass,
             }
-            resp = await client.post(ENLIGHTEN_AUTH_URL, data=payload_login, timeout=10)
+            resp = await client.post(ENLIGHTEN_AUTH_URL, data=payload_login, timeout=60)
             if resp.status_code >= 400:
                 raise Exception("Could not Authenticate via Enlighten")
 
@@ -246,7 +246,7 @@ class EnvoyReader:
                 "username": self.enlighten_user,
             }
             resp = await client.post(
-                ENLIGHTEN_TOKEN_URL, json=payload_token, timeout=10
+                ENLIGHTEN_TOKEN_URL, json=payload_token, timeout=60
             )
             if resp.status_code != 200:
                 raise Exception("Could not get installer token")
