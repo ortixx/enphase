@@ -320,7 +320,7 @@ BATTERY_ENERGY_CHARGED_SENSOR = SensorEntityDescription(
     device_class=SensorDeviceClass.ENERGY,
 )
 
-PRODUCION_POWER_SWITCH = SwitchEntityDescription(
+PRODUCTION_POWER_SWITCH = SwitchEntityDescription(
     key="production_power",
     name="Production",
     device_class=SwitchDeviceClass.SWITCH,
