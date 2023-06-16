@@ -38,7 +38,7 @@ async def async_setup_entry(hass: HomeAssistant,entry: homeassistant.ConfigEntry
     async def async_update_data():
         """Fetch data from API endpoint."""
         data = {}
-        async with async_timeout.timeout(10):
+        async with async_timeout.timeout(60):
             try:
                 await envoy_reader.getData()
             except httpx.HTTPStatusError as err:
