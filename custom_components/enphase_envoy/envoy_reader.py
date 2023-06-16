@@ -163,7 +163,7 @@ class EnvoyReader:
                         url,
                         headers=self._authorization_header,
                         cookies=self._cookies,
-                        timeout=60,
+                        timeout=10,
                         **kwargs,
                     )
                     if resp.status_code == 401 and attempt < 2:
@@ -194,7 +194,7 @@ class EnvoyReader:
                     headers=self._authorization_header,
                     cookies=self._cookies,
                     data=data,
-                    timeout=60,
+                    timeout=10,
                     **kwargs,
                 )
                 _LOGGER.debug("HTTP POST %s: %s: %s", url, resp, resp.text)
@@ -215,7 +215,7 @@ class EnvoyReader:
                     headers=self._authorization_header,
                     cookies=self._cookies,
                     json=data,
-                    timeout=60,
+                    timeout=10,
                     **kwargs,
                 )
                 _LOGGER.debug("HTTP PUT %s: %s: %s", url, resp, resp.text)
@@ -234,7 +234,7 @@ class EnvoyReader:
                 "user[email]": self.enlighten_user,
                 "user[password]": self.enlighten_pass,
             }
-            resp = await client.post(ENLIGHTEN_AUTH_URL, data=payload_login, timeout=60)
+            resp = await client.post(ENLIGHTEN_AUTH_URL, data=payload_login, timeout=10)
             if resp.status_code >= 400:
                 raise Exception("Could not Authenticate via Enlighten")
 
@@ -246,7 +246,7 @@ class EnvoyReader:
                 "username": self.enlighten_user,
             }
             resp = await client.post(
-                ENLIGHTEN_TOKEN_URL, json=payload_token, timeout=60
+                ENLIGHTEN_TOKEN_URL, json=payload_token, timeout=10
             )
             if resp.status_code != 200:
                 raise Exception("Could not get installer token")
@@ -662,6 +662,7 @@ class EnvoyReader:
             for item in self.endpoint_production_inverters.json():
                 response_dict[item["serialNumber"]] = {
                     "watt": item["lastReportWatts"],
+                    "MAXwatt": item ["maxReportWatts"],
                     "report_date": time.strftime(
                         "%Y-%m-%d %H:%M:%S", time.localtime(item["lastReportDate"])
                     ),
