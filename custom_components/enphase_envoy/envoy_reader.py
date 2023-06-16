@@ -163,7 +163,7 @@ class EnvoyReader:
                         url,
                         headers=self._authorization_header,
                         cookies=self._cookies,
-                        timeout=10,
+                        timeout=60,
                         **kwargs,
                     )
                     if resp.status_code == 401 and attempt < 2:
@@ -194,7 +194,7 @@ class EnvoyReader:
                     headers=self._authorization_header,
                     cookies=self._cookies,
                     data=data,
-                    timeout=10,
+                    timeout=60,
                     **kwargs,
                 )
                 _LOGGER.debug("HTTP POST %s: %s: %s", url, resp, resp.text)
