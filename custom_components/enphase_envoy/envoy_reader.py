@@ -748,6 +748,7 @@ class EnvoyReader:
                         "dcCurrentINmA",
                         "acVoltageINmV",
                         "acPowerINmW",
+                        "maxReportWatts",
                     ]:
                         if field in devstatus["pcu"]["fields"]:
                             value = item[devstatus["pcu"]["fields"].index(field)]
@@ -763,6 +764,8 @@ class EnvoyReader:
                                 response_dict[serial]["ac_voltage"] = int(value) / 1000
                             elif field == "acPowerINmW":
                                 response_dict[serial]["ac_power"] = int(value) / 1000
+                            elif field == "maxReportWatts":
+                                response_dict [serial] ["max_Watts"] = int (value) / 1000
                             else:
                                 response_dict[serial][field] = value
 
