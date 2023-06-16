@@ -25,7 +25,7 @@ from .const import (
 )
 from .envoy_reader import EnvoyReader
 
-SCAN_INTERVAL = timedelta(seconds=60)
+SCAN_INTERVAL = timedelta(seconds=10)
 
 _LOGGER = logging.getLogger(__name__)
 
