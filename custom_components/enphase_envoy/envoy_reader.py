@@ -131,12 +131,11 @@ class EnvoyReader:
     async def _update_from_installer_endpoint(self):
         """Update from installer endpoint."""
         await self._update_endpoint(
-            "endpoint_devstatus", ENDPOINT_URL_DEVSTATUS, only_on_success=True
+            "endpoint_devstatus", ENDPOINT_URL_DEVSTATUS,
         )
         await self._update_endpoint(
             "endpoint_production_power",
             ENDPOINT_URL_PRODUCTION_POWER,
-            only_on_success=True,
         )
 
     async def _update_endpoint(self, attr, url, only_on_success=False):
