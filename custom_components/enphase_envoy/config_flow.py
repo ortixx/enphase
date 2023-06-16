@@ -7,7 +7,7 @@ from typing import Any
 
 from .envoy_reader import EnvoyReader
 import httpx
-import voluptuous as vol
+from voluptuous import Required,In,Schema
 
 from homeassistant import config_entries
 from homeassistant.components import zeroconf
@@ -60,17 +60,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         schema = {}
 
         if self.ip_address:
-            schema[vol.Required(CONF_HOST, default=self.ip_address)] = vol.In(
+            schema[Required (CONF_HOST,default=self.ip_address)] = In (
                 [self.ip_address]
             )
         else:
-            schema[vol.Required(CONF_HOST)] = str
+            schema[Required (CONF_HOST)] = str
 
-        schema[vol.Required(CONF_SERIAL, default=self.unique_id)] = str
-        schema[vol.Required(CONF_USERNAME, default=self.username)] = str
-        schema[vol.Required(CONF_PASSWORD, default="")] = str
+        schema[Required (CONF_SERIAL,default=self.unique_id)] = str
+        schema[Required (CONF_USERNAME,default=self.username)] = str
+        schema[Required (CONF_PASSWORD,default= "")] = str
 
-        return vol.Schema(schema)
+        return Schema (schema)
 
     @callback
     def _async_current_hosts(self):

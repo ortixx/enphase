@@ -9,6 +9,8 @@ import xmltodict
 import httpx
 from json.decoder import JSONDecodeError
 
+from homeassistant.components.thermoworks_smoke.sensor import SERIAL_REGEX
+
 ENDPOINT_URL_INVENTORY = "https://{}/inventory.json"
 ENDPOINT_URL_PRODUCTION_JSON = "https://{}/production.json?details=1"
 ENDPOINT_URL_PRODUCTION_V1 = "https://{}/api/v1/production"
@@ -400,7 +402,7 @@ class EnvoyReader:
             "endpoint_inventory_results", ENDPOINT_URL_INVENTORY
         )
 
-    async def get_full_serial_number(self):
+    async def get_full_serial_number(self,SERIAL_REGEX=None):
         """Method to get the  Envoy serial number."""
         response = await self._async_fetch_with_retry(
             f"https://{self.host}/info.xml",
