@@ -24,8 +24,8 @@ async def async_setup_entry(
         if sensor_description.key.startswith ("inverters_"):
             if coordinator.data.get ("inverters_status") is not None:
                 for inverter in coordinator.data ["inverters_status"].keys ():
-                    device_name = f"Inverter {inverter}"
-                    entity_name = f"{device_name} {sensor_description.name}"
+                    device_name = "Inverter {inverter}"
+                    entity_name = "{device_name} {sensor_description.name}"
                     entities.append (
                         EnvoyInverterEntity (
                             sensor_description,
@@ -52,8 +52,8 @@ async def async_setup_entry(
         elif sensor_description.key == "relays":
             if coordinator.data.get ("relays") is not None:
                 for relay in coordinator.data ["relays"]:
-                    device_name = f"{sensor_description.name} {relay}"
-                    entity_name = f"{name} {device_name}"
+                    device_name = "{sensor_description.name} {relay}"
+                    entity_name = "{name} {device_name}"
 
                     serial_number = relay
                     entities.append (
@@ -69,7 +69,7 @@ async def async_setup_entry(
 
         elif sensor_description.key == "firmware":
             if coordinator.data.get ("update_status") is not None:
-                entity_name = f"{name} {sensor_description.name}"
+                entity_name = "{name} {sensor_description.name}"
                 serial_number = name.split (None,1) [-1]
                 entities.append (
                     EnvoyFirmwareEntity (
@@ -118,7 +118,7 @@ class EnvoyGridStatusEntity (CoordinatorEntity,BinarySensorEntity):
         if self._serial_number:
             return self._serial_number
         if self._device_serial_number:
-            return f"{self._device_serial_number}_{self.entity_description.key}"
+            return "{self._device_serial_number}_{self.entity_description.key}"
 
     @property
     def device_info(self) -> DeviceInfo or None:
@@ -171,7 +171,7 @@ class EnvoyInverterEntity (CoordinatorEntity,BinarySensorEntity):
         if self._serial_number:
             return self._serial_number
         if self._device_serial_number:
-            return f"{self._device_serial_number}_{self.entity_description.key}"
+            return "{self._device_serial_number}_{self.entity_description.key}"
 
     @property
     def extra_state_attributes(self):
@@ -241,7 +241,7 @@ class EnvoyBaseEntity (CoordinatorEntity):
         if self._serial_number:
             return self._serial_number
         if self._device_serial_number:
-            return f"{self._device_serial_number}_{self.entity_description.key}"
+            return "{self._device_serial_number}_{self.entity_description.key}"
 
     @property
     def native_value(self):

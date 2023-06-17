@@ -44,7 +44,7 @@ async def async_setup_entry(hass: HomeAssistant,entry: homeassistant.ConfigEntry
             except httpx.HTTPStatusError as err:
                 raise ConfigEntryAuthFailed from err
             except httpx.HTTPError as err:
-                raise UpdateFailed (f"Error communicating with API: {err}") from err
+                raise UpdateFailed ("Error communicating with API: {err}") from err
 
             for description in BINARY_SENSORS:
                 if description.key == "relays":
@@ -122,7 +122,7 @@ async def async_setup_entry(hass: HomeAssistant,entry: homeassistant.ConfigEntry
     coordinator = DataUpdateCoordinator (
         hass,
         _LOGGER,
-        name = f"envoy {name}",
+        name = "envoy {name}",
         update_method = async_update_data,
         update_interval = SCAN_INTERVAL,
     )

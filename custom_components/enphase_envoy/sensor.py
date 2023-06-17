@@ -41,8 +41,8 @@ async def async_setup_entry(
         if sensor_description.key == "inverters":
             if coordinator.data.get("inverters_production") is not None:
                 for inverter in coordinator.data["inverters_production"]:
-                    device_name = f"Inverter {inverter}"
-                    entity_name = f"{device_name} {sensor_description.name}"
+                    device_name = "Inverter {inverter}"
+                    entity_name = "{device_name} {sensor_description.name}"
                     serial_number = inverter
                     entities.append(
                         EnvoyInverterEntity(
@@ -58,8 +58,8 @@ async def async_setup_entry(
         elif sensor_description.key.startswith("inverters_"):
             if coordinator.data.get("inverters_status") is not None:
                 for inverter in coordinator.data["inverters_status"].keys():
-                    device_name = f"Inverter {inverter}"
-                    entity_name = f"{device_name} {sensor_description.name}"
+                    device_name = "Inverter {inverter}"
+                    entity_name = "{device_name} {sensor_description.name}"
                     serial_number = inverter
                     entities.append(
                         EnvoyInverterEntity(
@@ -76,7 +76,7 @@ async def async_setup_entry(
         elif sensor_description.key == "batteries":
             if coordinator.data.get("batteries") is not None:
                 for battery in coordinator.data["batteries"]:
-                    entity_name = f"{name} {sensor_description.name} {battery}"
+                    entity_name = "{name} {sensor_description.name} {battery}"
                     serial_number = battery
                     entities.append(
                         EnvoyBatteryEntity(
@@ -93,7 +93,7 @@ async def async_setup_entry(
             if coordinator.data.get("batteries") is not None:
                 battery_capacity_entity = TotalBatteryCapacityEntity(
                     sensor_description,
-                    f"{name} {sensor_description.name}",
+                    "{name} {sensor_description.name}",
                     name,
                     config_entry.unique_id,
                     None,
@@ -104,7 +104,7 @@ async def async_setup_entry(
                 entities.append(
                     BatteryEnergyChangeEntity(
                         BATTERY_ENERGY_CHARGED_SENSOR,
-                        f"{name} {BATTERY_ENERGY_CHARGED_SENSOR.name}",
+                        "{name} {BATTERY_ENERGY_CHARGED_SENSOR.name}",
                         name,
                         config_entry.unique_id,
                         None,
@@ -116,7 +116,7 @@ async def async_setup_entry(
                 entities.append(
                     BatteryEnergyChangeEntity(
                         BATTERY_ENERGY_DISCHARGED_SENSOR,
-                        f"{name} {BATTERY_ENERGY_DISCHARGED_SENSOR.name}",
+                        "{name} {BATTERY_ENERGY_DISCHARGED_SENSOR.name}",
                         name,
                         config_entry.unique_id,
                         None,
@@ -130,7 +130,7 @@ async def async_setup_entry(
                 entities.append(
                     TotalBatteryPercentageEntity(
                         sensor_description,
-                        f"{name} {sensor_description.name}",
+                        "{name} {sensor_description.name}",
                         name,
                         config_entry.unique_id,
                         None,
@@ -143,7 +143,7 @@ async def async_setup_entry(
             if data is None:
                 continue
 
-            entity_name = f"{name} {sensor_description.name}"
+            entity_name = "{name} {sensor_description.name}"
             entities.append(
                 CoordinatedEnvoyEntity(
                     sensor_description,
@@ -160,7 +160,7 @@ async def async_setup_entry(
         if data is None:
             continue
 
-        entity_name = f"{name} {sensor_description.name}"
+        entity_name = "{name} {sensor_description.name}"
         entities.append(
             CoordinatedEnvoyEntity(
                 sensor_description,
@@ -204,7 +204,7 @@ class EnvoyEntity(SensorEntity):
         if self._serial_number:
             return self._serial_number
         if self._device_serial_number:
-            return f"{self._device_serial_number}_{self.entity_description.key}"
+            return "{self._device_serial_number}_{self.entity_description.key}"
 
     @property
     def icon(self):
@@ -296,7 +296,7 @@ class EnvoyInverterEntity(CoordinatorEntity, SensorEntity):
         if self._serial_number:
             return self._serial_number
         if self._device_serial_number:
-            return f"{self._device_serial_number}_{self.entity_description.key}"
+            return "{self._device_serial_number}_{self.entity_description.key}"
 
     @property
     def native_value(self):
