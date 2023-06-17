@@ -4,13 +4,10 @@ import asyncio
 import datetime
 import time
 import logging
-from json.decoder import JSONDecodeError
 import jwt
 import xmltodict
 import httpx
-
-
-from homeassistant.components.thermoworks_smoke.sensor import SERIAL_REGEX
+from json.decoder import JSONDecodeError
 
 ENDPOINT_URL_INVENTORY = "https://{}/inventory.json"
 ENDPOINT_URL_PRODUCTION_JSON = "https://{}/production.json?details=1"
@@ -131,11 +128,12 @@ class EnvoyReader:
     async def _update_from_installer_endpoint(self):
         """Update from installer endpoint."""
         await self._update_endpoint(
-            "endpoint_devstatus", ENDPOINT_URL_DEVSTATUS,
+            "endpoint_devstatus", ENDPOINT_URL_DEVSTATUS, only_on_success=True
         )
         await self._update_endpoint(
             "endpoint_production_power",
             ENDPOINT_URL_PRODUCTION_POWER,
+            only_on_success=True,
         )
 
     async def _update_endpoint(self, attr, url, only_on_success=False):
@@ -163,7 +161,7 @@ class EnvoyReader:
                         url,
                         headers=self._authorization_header,
                         cookies=self._cookies,
-                        timeout=60,
+                        timeout=30,
                         **kwargs,
                     )
                     if resp.status_code == 401 and attempt < 2:
@@ -194,7 +192,7 @@ class EnvoyReader:
                     headers=self._authorization_header,
                     cookies=self._cookies,
                     data=data,
-                    timeout=60,
+                    timeout=30,
                     **kwargs,
                 )
                 _LOGGER.debug("HTTP POST %s: %s: %s", url, resp, resp.text)
@@ -215,7 +213,7 @@ class EnvoyReader:
                     headers=self._authorization_header,
                     cookies=self._cookies,
                     json=data,
-                    timeout=60,
+                    timeout=30,
                     **kwargs,
                 )
                 _LOGGER.debug("HTTP PUT %s: %s: %s", url, resp, resp.text)
@@ -234,7 +232,7 @@ class EnvoyReader:
                 "user[email]": self.enlighten_user,
                 "user[password]": self.enlighten_pass,
             }
-            resp = await client.post(ENLIGHTEN_AUTH_URL, data=payload_login, timeout=60)
+            resp = await client.post(ENLIGHTEN_AUTH_URL, data=payload_login, timeout=30)
             if resp.status_code >= 400:
                 raise Exception("Could not Authenticate via Enlighten")
 
@@ -246,7 +244,7 @@ class EnvoyReader:
                 "username": self.enlighten_user,
             }
             resp = await client.post(
-                ENLIGHTEN_TOKEN_URL, json=payload_token, timeout=60
+                ENLIGHTEN_TOKEN_URL, json=payload_token, timeout=30
             )
             if resp.status_code != 200:
                 raise Exception("Could not get installer token")
@@ -405,7 +403,7 @@ class EnvoyReader:
     async def get_full_serial_number(self):
         """Method to get the  Envoy serial number."""
         response = await self._async_fetch_with_retry(
-            "https://{self.host}/info.xml",
+            f"https://{self.host}/info.xml",
             follow_redirects=True,
         )
         if not response.text:
@@ -662,7 +660,6 @@ class EnvoyReader:
             for item in self.endpoint_production_inverters.json():
                 response_dict[item["serialNumber"]] = {
                     "watt": item["lastReportWatts"],
-                    "MAXwatt": item ["maxReportWatts"],
                     "report_date": time.strftime(
                         "%Y-%m-%d %H:%M:%S", time.localtime(item["lastReportDate"])
                     ),
@@ -748,7 +745,6 @@ class EnvoyReader:
                         "dcCurrentINmA",
                         "acVoltageINmV",
                         "acPowerINmW",
-                        "maxReportWatts",
                     ]:
                         if field in devstatus["pcu"]["fields"]:
                             value = item[devstatus["pcu"]["fields"].index(field)]
@@ -764,8 +760,6 @@ class EnvoyReader:
                                 response_dict[serial]["ac_voltage"] = int(value) / 1000
                             elif field == "acPowerINmW":
                                 response_dict[serial]["ac_power"] = int(value) / 1000
-                            elif field == "maxReportWatts":
-                                response_dict [serial] ["max_Watts"] = int (value) / 1000
                             else:
                                 response_dict[serial][field] = value
 
