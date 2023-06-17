@@ -405,7 +405,7 @@ class EnvoyReader:
     async def get_full_serial_number(self):
         """Method to get the  Envoy serial number."""
         response = await self._async_fetch_with_retry(
-            f"https://{self.host}/info.xml",
+            "https://{self.host}/info.xml",
             follow_redirects=True,
         )
         if not response.text:
