@@ -503,7 +503,7 @@ class EnvoyReader:
             self.endpoint_type == ENVOY_MODEL_S and not self.isMeteringEnabled
         ):
             raw_json = self.endpoint_production_v1_results.json()
-            daily_production = raw_json["whToday"]
+            daily_production = raw_json["wattHoursToday"]
         return int(daily_production)
 
     async def daily_production_phase(self, phase):
@@ -764,8 +764,6 @@ class EnvoyReader:
                                 response_dict[serial]["ac_voltage"] = int(value) / 1000
                             elif field == "acPowerINmW":
                                 response_dict[serial]["ac_power"] = int(value) / 1000
-                            elif field == "maxReportWatts":
-                                response_dict [serial] ["max_Watts"] = int (value) / 1000
                             else:
                                 response_dict[serial][field] = value
 
