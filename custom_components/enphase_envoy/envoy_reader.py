@@ -662,7 +662,7 @@ class EnvoyReader:
             for item in self.endpoint_production_inverters.json():
                 response_dict[item["serialNumber"]] = {
                     "watt": item["lastReportWatts"],
-                    "watt2": item ["maxReportWatts"],
+                    "MAXwatt": item ["maxReportWatts"],
                     "report_date": time.strftime(
                         "%Y-%m-%d %H:%M:%S", time.localtime(item["lastReportDate"])
                     ),
