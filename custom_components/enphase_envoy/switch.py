@@ -71,7 +71,7 @@ class EnvoyProductionSwitchEntity(CoordinatorEntity, SwitchEntity):
         if self._serial_number:
             return self._serial_number
         if self._device_serial_number:
-            return f"{self._device_serial_number}_{self.entity_description.key}"
+            return "{self._device_serial_number}_{self.entity_description.key}"
 
     @property
     def device_info(self) -> DeviceInfo or None:

@@ -405,7 +405,7 @@ class EnvoyReader:
     async def get_full_serial_number(self):
         """Method to get the  Envoy serial number."""
         response = await self._async_fetch_with_retry(
-            f"https://{self.host}/info.xml",
+            "https://{self.host}/info.xml",
             follow_redirects=True,
         )
         if not response.text:
@@ -764,8 +764,6 @@ class EnvoyReader:
                                 response_dict[serial]["ac_voltage"] = int(value) / 1000
                             elif field == "acPowerINmW":
                                 response_dict[serial]["ac_power"] = int(value) / 1000
-                            elif field == "maxReportWatts":
-                                response_dict [serial] ["max_Watts"] = int (value) / 1000
                             else:
                                 response_dict[serial][field] = value
 
@@ -888,21 +886,21 @@ class EnvoyReader:
             )
         )
 
-        print(f"production:              {results[0]}")
-        print(f"consumption:             {results[1]}")
-        print(f"daily_production:        {results[2]}")
-        print(f"daily_consumption:       {results[3]}")
-        print(f"seven_days_production:   {results[4]}")
-        print(f"seven_days_consumption:  {results[5]}")
-        print(f"lifetime_production:     {results[6]}")
-        print(f"lifetime_consumption:    {results[7]}")
-        print(f"inverters_production:    {results[8]}")
-        print(f"battery_storage:         {results[9]}")
-        print(f"production_power:        {results[10]}")
-        print(f"inverters_status:        {results[11]}")
-        print(f"relays:                  {results[12]}")
-        print(f"envoy_info:              {results[13]}")
-        print(f"inverters_info:          {results[14]}")
+        print("production:              {results[0]}")
+        print("consumption:             {results[1]}")
+        print("daily_production:        {results[2]}")
+        print("daily_consumption:       {results[3]}")
+        print("seven_days_production:   {results[4]}")
+        print("seven_days_consumption:  {results[5]}")
+        print("lifetime_production:     {results[6]}")
+        print("lifetime_consumption:    {results[7]}")
+        print("inverters_production:    {results[8]}")
+        print("battery_storage:         {results[9]}")
+        print("production_power:        {results[10]}")
+        print("inverters_status:        {results[11]}")
+        print("relays:                  {results[12]}")
+        print("envoy_info:              {results[13]}")
+        print("inverters_info:          {results[14]}")
 
 
 if __name__ == "__main__":
