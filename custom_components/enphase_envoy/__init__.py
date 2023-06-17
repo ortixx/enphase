@@ -49,7 +49,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def async_update_data():
         """Fetch data from API endpoint."""
         data = {}
-        async with async_timeout.timeout(120):
+        async with async_timeout.timeout(30):
             try:
                 await envoy_reader.getData()
             except httpx.HTTPStatusError as err:
@@ -62,8 +62,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     data[description.key] = await envoy_reader.relay_status()
 
                 elif description.key == "firmware":
-                    envoy_info = await envoy_reader.envoy_info()
-                    data[description.key] = envoy_info.get("update_status", None)
+                    data[description.key] = await envoy_reader.firmware_data()
 
             for description in SENSORS:
                 if description.key == "inverters":
@@ -123,8 +122,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
             data["grid_status"] = await envoy_reader.grid_status()
             data["production_power"] = await envoy_reader.production_power()
-            data["envoy_info"] = await envoy_reader.envoy_info()
-            data["inverters_info"] = await envoy_reader.inverters_info()
 
             _LOGGER.debug("Retrieved data from API: %s", data)
 
