@@ -95,7 +95,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 and CONF_HOST in entry.data
                 and entry.data[CONF_HOST] == self.ip_address
             ):
-                title = "{ENVOY} {serial}" if entry.title == ENVOY else ENVOY
+                title = f"{ENVOY} {serial}" if entry.title == ENVOY else ENVOY
                 self.hass.config_entries.async_update_entry(
                     entry, title=title, unique_id=serial
                 )
@@ -116,7 +116,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def _async_envoy_name(self) -> str:
         """Return the name of the envoy."""
         if self.unique_id:
-            return "{ENVOY} {self.unique_id}"
+            return f"{ENVOY} {self.unique_id}"
         return ENVOY
 
     async def _async_set_unique_id_from_envoy(self, envoy_reader: EnvoyReader) -> bool:
