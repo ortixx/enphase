@@ -503,7 +503,7 @@ class EnvoyReader:
             self.endpoint_type == ENVOY_MODEL_S and not self.isMeteringEnabled
         ):
             raw_json = self.endpoint_production_v1_results.json()
-            daily_production = raw_json["whToday"]
+            daily_production = raw_json["wattHoursToday"]
         return int(daily_production)
 
     async def daily_production_phase(self, phase):
