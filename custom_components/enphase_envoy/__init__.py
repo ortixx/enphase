@@ -1,27 +1,38 @@
 """The Enphase Envoy integration."""
 from __future__ import annotations
 
-import logging
 from datetime import timedelta
+import logging
 
 import async_timeout
-import homeassistant.config_entries
+from .envoy_reader import EnvoyReader
 import httpx
-from homeassistant.const import CONF_HOST,CONF_NAME,CONF_PASSWORD,CONF_USERNAME
+from numpy import isin
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator,UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from custom_components.enphase_envoy.const import COORDINATOR,DOMAIN,NAME,PLATFORMS,BINARY_SENSORS,SENSORS, \
-    PHASE_SENSORS,CONF_SERIAL,READER
-from .envoy_reader import EnvoyReader
+from .const import (
+    COORDINATOR,
+    DOMAIN,
+    NAME,
+    PLATFORMS,
+    BINARY_SENSORS,
+    SENSORS,
+    PHASE_SENSORS,
+    CONF_SERIAL,
+    READER,
+)
 
 SCAN_INTERVAL = timedelta(seconds=60)
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass: HomeAssistant,entry: homeassistant.ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Enphase Envoy from a config entry."""
 
     config = entry.data
@@ -38,7 +49,7 @@ async def async_setup_entry(hass: HomeAssistant,entry: homeassistant.ConfigEntry
     async def async_update_data():
         """Fetch data from API endpoint."""
         data = {}
-        async with async_timeout.timeout(60):
+        async with async_timeout.timeout(30):
             try:
                 await envoy_reader.getData()
             except httpx.HTTPStatusError as err:
@@ -152,7 +163,7 @@ async def async_setup_entry(hass: HomeAssistant,entry: homeassistant.ConfigEntry
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant,entry: homeassistant.config_entries.ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
