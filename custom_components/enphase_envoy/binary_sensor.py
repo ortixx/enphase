@@ -1,3 +1,5 @@
+from typing import Optional
+
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -257,7 +259,7 @@ class EnvoyBaseEntity(CoordinatorEntity):
         return None
 
     @property
-    def device_info(self) -> DeviceInfo | None:
+    def device_info(self) -> Optional [DeviceInfo]:
         """Return the device_info of the device."""
         if not self._device_serial_number:
             return None
@@ -291,7 +293,7 @@ class EnvoyBinaryEntity(EnvoyBaseEntity, BinarySensorEntity):
 
 class EnvoyFirmwareEntity(EnvoyBinaryEntity):
     @property
-    def is_on(self) -> bool | None:
+    def is_on(self) -> Optional [bool]:
         """Return true if the binary sensor is on."""
         if self.coordinator.data.get("envoy_info"):
             update_status = self.coordinator.data.get("envoy_info").get("update_status")
@@ -307,7 +309,7 @@ class EnvoyRelayEntity(EnvoyBinaryEntity):
     """Envoy relay entity."""
 
     @property
-    def is_on(self) -> bool | None:
+    def is_on(self) -> Optional [bool]:
         """Return true if the binary sensor is on."""
         relays = self.coordinator.data.get("relays")
         if relays is None:
@@ -316,7 +318,7 @@ class EnvoyRelayEntity(EnvoyBinaryEntity):
         return relays.get(self._serial_number).get("relay") == "closed"
 
     @property
-    def extra_state_attributes(self) -> dict | None:
+    def extra_state_attributes(self) -> Optional [dict]:
         """Return the state attributes."""
         if self.coordinator.data.get("relays") is not None:
             relay = self.coordinator.data.get("relays").get(self._serial_number)
@@ -330,7 +332,7 @@ class EnvoyRelayEntity(EnvoyBinaryEntity):
         return None
 
     @property
-    def device_info(self) -> DeviceInfo | None:
+    def device_info(self) -> Optional [DeviceInfo]:
         """Return the device_info of the device."""
         if not self._device_serial_number:
             return None
