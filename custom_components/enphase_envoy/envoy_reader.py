@@ -187,7 +187,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
             try:
                 async with self.async_client as client:
                     resp = await client.get(
-                        url, headers=self._authorization_header, timeout=30, **kwargs
+                        url, headers=self._authorization_header, timeout=60, **kwargs
                     )
                     if resp.status_code == 401 and attempt < 2:
                         _LOGGER.debug(
@@ -213,7 +213,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         try:
             async with self.async_client as client:
                 resp = await client.post(
-                    url, cookies=cookies, data=data, timeout=30, **kwargs
+                    url, cookies=cookies, data=data, timeout=60, **kwargs
                 )
                 _LOGGER.debug("HTTP POST %s: %s: %s", url, resp, resp.text)
                 _LOGGER.debug("HTTP POST Cookie: %s", resp.cookies)
@@ -232,7 +232,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                     url,
                     headers=self._authorization_header,
                     json=data,
-                    timeout=30,
+                    timeout=60,
                     **kwargs,
                 )
                 _LOGGER.debug("HTTP PUT %s: %s: %s", url, resp, resp.text)
@@ -264,7 +264,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 "user[password]": self.enlighten_pass,
             }
             resp = await client.post(
-                ENLIGHTEN_AUTH_FORM_URL + form_action, data=payload_login, timeout=10
+                ENLIGHTEN_AUTH_FORM_URL + form_action, data=payload_login, timeout=60
             )
             if resp.status_code >= 400:
                 raise Exception("Could not Authenticate via Enlighten auth form")
