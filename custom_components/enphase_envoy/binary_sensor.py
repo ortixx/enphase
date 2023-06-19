@@ -293,7 +293,7 @@ class EnvoyBinaryEntity(EnvoyBaseEntity, BinarySensorEntity):
 
 class EnvoyFirmwareEntity(EnvoyBinaryEntity):
     @property
-    def is_on(self) -> bool | None:
+    def is_on(self) -> Optional [bool]:
         """Return true if the binary sensor is on."""
         if self.coordinator.data.get("envoy_info"):
             update_status = self.coordinator.data.get("envoy_info").get("update_status")
@@ -309,7 +309,7 @@ class EnvoyRelayEntity(EnvoyBinaryEntity):
     """Envoy relay entity."""
 
     @property
-    def is_on(self) -> bool | None:
+    def is_on(self) -> Optional [bool]:
         """Return true if the binary sensor is on."""
         relays = self.coordinator.data.get("relays")
         if relays is None:
