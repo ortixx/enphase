@@ -25,13 +25,8 @@ ENVOY = "Envoy"
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> EnvoyReader:
     """Validate the user input allows us to connect."""
-    envoy_reader = EnvoyReader(
-        data[CONF_HOST],
-        enlighten_user=data[CONF_USERNAME],
-        enlighten_pass=data[CONF_PASSWORD],
-        inverters=False,
-        enlighten_serial_num=data[CONF_SERIAL],
-    )
+    envoy_reader = EnvoyReader (data [CONF_HOST],enlighten_user = data [CONF_USERNAME],
+                                enlighten_pass = data [CONF_PASSWORD],enlighten_serial_num = data [CONF_SERIAL])
 
     try:
         await envoy_reader.getData()

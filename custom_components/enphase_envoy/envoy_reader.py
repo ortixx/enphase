@@ -883,28 +883,16 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         print("Reading...")
         loop = asyncio.get_event_loop()
         data_results = loop.run_until_complete(
-            asyncio.gather(self.getData(), return_exceptions=False)
+            asyncio.gather (self.getData ())
         )
 
         loop = asyncio.get_event_loop()
         results = loop.run_until_complete(
-            asyncio.gather(
-                self.production(),
-                self.consumption(),
-                self.daily_production(),
-                self.daily_consumption(),
-                self.seven_days_production(),
-                self.seven_days_consumption(),
-                self.lifetime_production(),
-                self.lifetime_consumption(),
-                self.inverters_production(),
-                self.battery_storage(),
-                self.production_power(),
-                self.inverters_status(),
-                self.relay_status(),
-                self.firmware_data(),
-                return_exceptions=False,
-            )
+            asyncio.gather (self.production (),self.consumption (),self.daily_production (),self.daily_consumption (),
+                            self.seven_days_production (),self.seven_days_consumption (),self.lifetime_production (),
+                            self.lifetime_consumption (),self.inverters_production (),self.battery_storage (),
+                            self.production_power (),self.inverters_status (),self.relay_status (),
+                            self.firmware_data ())
         )
 
         print(f"production:              {results[0]}")
