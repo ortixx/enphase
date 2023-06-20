@@ -818,7 +818,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
 
         return response_dict
 
-    async def relay_status(self):
+    @property async def relay_status(self):
         """Return relay status from Envoys that have relays installed."""
         response_dict = {}
         try:
@@ -883,16 +883,28 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         print("Reading...")
         loop = asyncio.get_event_loop()
         data_results = loop.run_until_complete(
-            asyncio.gather (self.getData ())
+            asyncio.gather(self.getData(), return_exceptions=False)
         )
 
         loop = asyncio.get_event_loop()
         results = loop.run_until_complete(
-            asyncio.gather (self.production (),self.consumption (),self.daily_production (),self.daily_consumption (),
-                            self.seven_days_production (),self.seven_days_consumption (),self.lifetime_production (),
-                            self.lifetime_consumption (),self.inverters_production (),self.battery_storage (),
-                            self.production_power (),self.inverters_status (),self.relay_status (),
-                            self.firmware_data ())
+            asyncio.gather(
+                self.production(),
+                self.consumption(),
+                self.daily_production(),
+                self.daily_consumption(),
+                self.seven_days_production(),
+                self.seven_days_consumption(),
+                self.lifetime_production(),
+                self.lifetime_consumption(),
+                self.inverters_production(),
+                self.battery_storage(),
+                self.production_power(),
+                self.inverters_status(),
+                self.relay_status,
+                self.firmware_data(),
+                return_exceptions=False,
+            )
         )
 
         print(f"production:              {results[0]}")
