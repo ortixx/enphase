@@ -14,7 +14,7 @@ from envoy_utils.envoy_utils import EnvoyUtils
 
 SERIAL_REGEX = re.compile(r"Envoy\s*Serial\s*Number:\s*([0-9]+)")
 
-ENDPOITN_URL_INVENTORY = "https://{}/inventory.json"
+ENDPOINT_URL_INVENTORY = "https://{}/inventory.json"
 ENDPOINT_URL_PRODUCTION_JSON = "https://{}/production.json?details=1"
 ENDPOINT_URL_PRODUCTION_V1 = "https://{}/api/v1/production"
 ENDPOINT_URL_PRODUCTION_INVERTERS = "https://{}/api/v1/production/inverters"
