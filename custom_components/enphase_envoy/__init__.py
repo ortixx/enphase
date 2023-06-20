@@ -1,16 +1,19 @@
 """The Enphase Envoy integration."""
 from __future__ import annotations
 
-import logging
 from datetime import timedelta
+import logging
 
 import async_timeout
+from .envoy_reader import EnvoyReader
 import httpx
+import numpy
+
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST,CONF_NAME,CONF_PASSWORD,CONF_USERNAME
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator,UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
     COORDINATOR,
@@ -23,63 +26,62 @@ from .const import (
     CONF_SERIAL,
     READER,
 )
-from custom_components.enphase_envoy.envoy_reader import EnvoyReader
 
-SCAN_INTERVAL = timedelta (seconds = 10)
+SCAN_INTERVAL = timedelta(seconds=120)
 
-_LOGGER = logging.getLogger (__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass: HomeAssistant,entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Enphase Envoy from a config entry."""
 
     config = entry.data
-    name = config [CONF_NAME]
+    name = config[CONF_NAME]
 
-    envoy_reader = EnvoyReader (
-        config [CONF_HOST],
-        enlighten_user = config [CONF_USERNAME],
-        enlighten_pass = config [CONF_PASSWORD],
-        inverters = True,
-        enlighten_serial_num = config [CONF_SERIAL],
+    envoy_reader = EnvoyReader(
+        config[CONF_HOST],
+        enlighten_user=config[CONF_USERNAME],
+        enlighten_pass=config[CONF_PASSWORD],
+        inverters=True,
+        enlighten_serial_num=config[CONF_SERIAL],
     )
 
     async def async_update_data():
         """Fetch data from API endpoint."""
-        data = { }
-        async with async_timeout.timeout (60):
+        data = {}
+        async with async_timeout.timeout(30):
             try:
-                await envoy_reader.getData ()
+                await envoy_reader.getData()
             except httpx.HTTPStatusError as err:
                 raise ConfigEntryAuthFailed from err
             except httpx.HTTPError as err:
-                raise UpdateFailed (f"Error communicating with API: {err}") from err
+                raise UpdateFailed(f"Error communicating with API: {err}") from err
 
             for description in BINARY_SENSORS:
                 if description.key == "relays":
-                    data [description.key] = await envoy_reader.relay_status ()
+                    data[description.key] = await envoy_reader.relay_status()
 
                 elif description.key == "firmware":
-                    data [description.key] = await envoy_reader.firmware_data ()
+                    data[description.key] = await envoy_reader.firmware_data()
 
             for description in SENSORS:
                 if description.key == "inverters":
-                    data [
+                    data[
                         "inverters_production"
-                    ] = await envoy_reader.inverters_production ()
-                    data ["inverters_status"] = await envoy_reader.inverters_status ()
+                    ] = await envoy_reader.inverters_production()
+                    data["inverters_status"] = await envoy_reader.inverters_status()
 
-                elif description.key.startswith ("inverters_"):
+                elif description.key.startswith("inverters_"):
                     continue
 
                 elif description.key == "batteries":
-                    battery_data = await envoy_reader.battery_storage ()
-                    if isinstance (battery_data,list) and len (battery_data) > 0:
-                        battery_dict = { }
+                    battery_data = await envoy_reader.battery_storage()
+                    if isinstance(battery_data, list) and len(battery_data) > 0:
+                        battery_dict = {}
                         for item in battery_data:
-                            battery_dict [item ["serial_num"]] = item
+                            battery_dict[item["serial_num"]] = item
 
-                        data [description.key] = battery_dict
+                        data[description.key] = battery_dict
 
                 elif description.key in [
                     "current_battery_capacity",
@@ -88,79 +90,79 @@ async def async_setup_entry(hass: HomeAssistant,entry: ConfigEntry) -> bool:
                     continue
 
                 else:
-                    data [description.key] = await getattr (
-                        envoy_reader,description.key
-                    ) ()
+                    data[description.key] = await getattr(
+                        envoy_reader, description.key
+                    )()
 
             for description in PHASE_SENSORS:
-                if description.key.startswith ("production_"):
-                    data [description.key] = await envoy_reader.production_phase (
+                if description.key.startswith("production_"):
+                    data[description.key] = await envoy_reader.production_phase(
                         description.key
                     )
-                elif description.key.startswith ("consumption_"):
-                    data [description.key] = await envoy_reader.consumption_phase (
+                elif description.key.startswith("consumption_"):
+                    data[description.key] = await envoy_reader.consumption_phase(
                         description.key
                     )
-                elif description.key.startswith ("daily_production_"):
-                    data [description.key] = await envoy_reader.daily_production_phase (
+                elif description.key.startswith("daily_production_"):
+                    data[description.key] = await envoy_reader.daily_production_phase(
                         description.key
                     )
-                elif description.key.startswith ("daily_consumption_"):
-                    data [description.key] = await envoy_reader.daily_consumption_phase (
+                elif description.key.startswith("daily_consumption_"):
+                    data[description.key] = await envoy_reader.daily_consumption_phase(
                         description.key
                     )
-                elif description.key.startswith ("lifetime_production_"):
-                    data [
+                elif description.key.startswith("lifetime_production_"):
+                    data[
                         description.key
-                    ] = await envoy_reader.lifetime_production_phase (description.key)
-                elif description.key.startswith ("lifetime_consumption_"):
-                    data [
+                    ] = await envoy_reader.lifetime_production_phase(description.key)
+                elif description.key.startswith("lifetime_consumption_"):
+                    data[
                         description.key
-                    ] = await envoy_reader.lifetime_consumption_phase (description.key)
+                    ] = await envoy_reader.lifetime_consumption_phase(description.key)
 
-            data ["grid_status"] = await envoy_reader.grid_status ()
-            data ["production_power"] = await envoy_reader.production_power ()
+            data["grid_status"] = await envoy_reader.grid_status()
+            data["production_power"] = await envoy_reader.production_power()
 
-            _LOGGER.debug ("Retrieved data from API: %s",data)
+            _LOGGER.debug("Retrieved data from API: %s", data)
 
             return data
 
-    coordinator = DataUpdateCoordinator (
+    coordinator = DataUpdateCoordinator(
         hass,
         _LOGGER,
-        name = f"envoy {name}",
-        update_method = async_update_data,
-        update_interval = SCAN_INTERVAL,
+        name=f"envoy {name}",
+        update_method=async_update_data,
+        update_interval=SCAN_INTERVAL,
     )
 
     try:
-        await coordinator.async_config_entry_first_refresh ()
+        await coordinator.async_config_entry_first_refresh()
     except ConfigEntryAuthFailed:
         envoy_reader.get_inverters = False
-        await coordinator.async_config_entry_first_refresh ()
+        await coordinator.async_config_entry_first_refresh()
 
     if not entry.unique_id:
         try:
-            serial = await envoy_reader.get_full_serial_number ()
+            serial = await envoy_reader.get_full_serial_number()
         except httpx.HTTPError:
             pass
         else:
-            hass.config_entries.async_update_entry (entry,unique_id = serial)
+            hass.config_entries.async_update_entry(entry, unique_id=serial)
 
-    hass.data.setdefault (DOMAIN,{ }) [entry.entry_id] = {
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
         COORDINATOR: coordinator,
         NAME: name,
         READER: envoy_reader,
     }
 
-    await hass.config_entries.async_forward_entry_setups (entry,PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant,entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms (entry,PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        hass.data [DOMAIN].pop (entry.entry_id)
+        hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok

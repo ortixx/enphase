@@ -14,7 +14,7 @@ from envoy_utils.envoy_utils import EnvoyUtils
 
 SERIAL_REGEX = re.compile(r"Envoy\s*Serial\s*Number:\s*([0-9]+)")
 
-ENDPOINT_URL_INVENTORY = "https://{}/inventory.json"
+ENDPOITN_URL_INVENTORY = "https://{}/inventory.json"
 ENDPOINT_URL_PRODUCTION_JSON = "https://{}/production.json?details=1"
 ENDPOINT_URL_PRODUCTION_V1 = "https://{}/api/v1/production"
 ENDPOINT_URL_PRODUCTION_INVERTERS = "https://{}/api/v1/production/inverters"
@@ -818,7 +818,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
 
         return response_dict
 
-    @property async def relay_status(self):
+    async def relay_status(self):
         """Return relay status from Envoys that have relays installed."""
         response_dict = {}
         try:
@@ -901,7 +901,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 self.battery_storage(),
                 self.production_power(),
                 self.inverters_status(),
-                self.relay_status,
+                self.relay_status(),
                 self.firmware_data(),
                 return_exceptions=False,
             )
