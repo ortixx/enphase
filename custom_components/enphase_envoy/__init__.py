@@ -23,7 +23,7 @@ from .const import (
     CONF_SERIAL,
     READER,
 )
-from .envoy_reader import EnvoyReader
+from custom_components.enphase_envoy.envoy_reader import EnvoyReader
 
 SCAN_INTERVAL = timedelta (seconds = 10)
 
