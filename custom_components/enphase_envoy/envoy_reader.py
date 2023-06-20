@@ -818,7 +818,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
 
         return response_dict
 
-    async def relay_status(self):
+    @property async def relay_status(self):
         """Return relay status from Envoys that have relays installed."""
         response_dict = {}
         try:
@@ -901,7 +901,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 self.battery_storage(),
                 self.production_power(),
                 self.inverters_status(),
-                self.relay_status(),
+                self.relay_status,
                 self.firmware_data(),
                 return_exceptions=False,
             )
