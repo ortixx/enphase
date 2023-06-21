@@ -302,8 +302,3 @@ class EnvoyInverterEntity(CoordinatorEntity, SensorEntity):
             sw_version=sw_version,
             hw_version=hw_version,
         )
-
-    @property
-    def native_value(self):
-        """Return the state of the sensor."""
-        return self._state
