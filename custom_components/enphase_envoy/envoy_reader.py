@@ -684,7 +684,7 @@ class EnvoyReader:
             if "powerForcedOff" in power_json.keys():
                 return not power_json["powerForcedOff"]
 
-        return self.message_production_power_not_available
+        return None
 
     async def set_production_power(self, power_on):
         if self.endpoint_production_power is not None:
