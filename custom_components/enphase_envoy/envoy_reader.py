@@ -677,27 +677,6 @@ class EnvoyReader:
 
         return response_dict
 
-    async def battery_storage(self):
-        """Return battery data from Envoys that support and have batteries installed"""
-        try:
-            raw_json = self.endpoint_production_json_results.json()
-        except JSONDecodeError:
-            return None
-
-        """For Envoys that support batteries but do not have them installed the"""
-        """percentFull will not be available in the JSON results. The API will"""
-        """only return battery data if batteries are installed."""
-        if "percentFull" not in raw_json["storage"][0].keys():
-            # "ENCHARGE" batteries are part of the "ENSEMBLE" api instead
-            # Check to see if it's there. Enphase has too much fun with these names
-            if self.endpoint_ensemble_json_results is not None:
-                ensemble_json = self.endpoint_ensemble_json_results.json()
-                if len(ensemble_json) > 0 and "devices" in ensemble_json[0].keys():
-                    return ensemble_json[0]["devices"]
-            return self.message_battery_not_available
-
-        return raw_json["storage"][0]
-
     async def grid_status(self):
         """Return grid status reported by Envoy"""
         if self.endpoint_home_json_results is not None:
@@ -891,7 +870,6 @@ class EnvoyReader:
                 self.lifetime_production(),
                 self.lifetime_consumption(),
                 self.inverters_production(),
-                self.battery_storage(),
                 self.production_power(),
                 self.inverters_status(),
                 self.relay_status(),
@@ -911,12 +889,11 @@ class EnvoyReader:
         print(f"lifetime_production:     {results[6]}")
         print(f"lifetime_consumption:    {results[7]}")
         print(f"inverters_production:    {results[8]}")
-        print(f"battery_storage:         {results[9]}")
-        print(f"production_power:        {results[10]}")
-        print(f"inverters_status:        {results[11]}")
-        print(f"relays:                  {results[12]}")
-        print(f"envoy_info:              {results[13]}")
-        print(f"inverters_info:          {results[14]}")
+        print(f"production_power:        {results[9]}")
+        print(f"inverters_status:        {results[10]}")
+        print(f"relays:                  {results[11]}")
+        print(f"envoy_info:              {results[12]}")
+        print(f"inverters_info:          {results[13]}")
 
 
 if __name__ == "__main__":
