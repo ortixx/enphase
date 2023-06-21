@@ -6,7 +6,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.helpers.entity import DeviceInfo
 
-from .const import COORDINATOR,DOMAIN,NAME,ICON,BINARY_SENSORS
+from .const import COORDINATOR, DOMAIN, NAME, ICON, BINARY_SENSORS
 
 
 async def async_setup_entry(
@@ -14,9 +14,9 @@ async def async_setup_entry(
         config_entry: ConfigEntry,
         async_add_entities: AddEntitiesCallback,
 ) -> None:
-    data = hass.data [DOMAIN] [config_entry.entry_id]
-    coordinator = data [COORDINATOR]
-    name = data [NAME]
+    data = hass.data[DOMAIN] [config_entry.entry_id]
+    coordinator = data[COORDINATOR]
+    name = data[NAME]
 
     entities = []
     for sensor_description in BINARY_SENSORS:

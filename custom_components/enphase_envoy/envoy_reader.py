@@ -862,8 +862,8 @@ class EnvoyReader:
                 self.inverters_status(),
                 self.relay_status(),
                 self.firmware_data(),
-                self.envoy_info (),
-                self.inverters_info (),
+                self.envoy_info(),
+                self.inverters_info(),
                 return_exceptions=False,
             )
         )
