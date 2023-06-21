@@ -307,7 +307,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         self._authorization_header = {"Authorization": "Bearer " + self._token}
 
         # Fetch the Enphase Token status from the local Envoy
-        token_validation_html = await self._async_fetch_with_retry(
+        token_validation = await self._async_post(
             ENDPOINT_URL_CHECK_JWT.format(self.host)
         )
 
@@ -879,6 +879,41 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 }
         return None
 
+    async def envoy_info(self):
+        device_data = { }
+
+        if self.endpoint_home_json_results:
+            home_json = self.endpoint_home_json_results.json ()
+            if "update_status" in home_json:
+                device_data ["update_status"] = home_json ["update_status"]
+                device_data ["software_build_epoch"] = home_json ["software_build_epoch"]
+
+        if self.endpoint_info_results:
+            try:
+                data = xmltodict.parse (self.endpoint_info_results.text)
+                device_data ["software"] = data ["envoy_info"] ["device"] ["software"]
+                device_data ["pn"] = data ["envoy_info"] ["device"] ["pn"]
+            except (KeyError,IndexError,TypeError,AttributeError):
+                pass
+
+        return device_data
+
+    async def inverters_info(self):
+        response_dict = { }
+        try:
+            devinfo = self.endpoint_inventory_results.json ()
+            for item in devinfo:
+                if "type" in item and item ["type"] == "PCU":
+                    for device in item ["devices"]:
+                        if device ["dev_type"] == 12:
+                            # this is a relay
+                            continue
+                        response_dict [device ["serial_num"]] = device
+        except (KeyError,IndexError,TypeError,AttributeError):
+            pass
+
+        return response_dict
+
     def run_in_console(self):
         """If running this module directly, print all the values in the console."""
         print("Reading...")
@@ -904,6 +939,8 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 self.inverters_status(),
                 self.relay_status(),
                 self.firmware_data(),
+                self.envoy_info (),
+                self.inverters_info (),
                 return_exceptions=False,
             )
         )
@@ -916,21 +953,13 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         print(f"seven_days_consumption:  {results[5]}")
         print(f"lifetime_production:     {results[6]}")
         print(f"lifetime_consumption:    {results[7]}")
-        if "401" in str(data_results):
-            print(
-                "inverters_production:    Unable to retrieve inverter data - Authentication failure"
-            )
-        elif results[8] is None:
-            print(
-                "inverters_production:    Inverter data not available for your Envoy device."
-            )
-        else:
-            print(f"inverters_production:    {results[8]}")
+        print(f"inverters_production:    {results[8]}")
         print(f"battery_storage:         {results[9]}")
         print(f"production_power:        {results[10]}")
         print(f"inverters_status:        {results[11]}")
         print(f"relays:                  {results[12]}")
-        print(f"firmware:                {results[13]}")
+        print(f"envoy_info:              {results[13]}")
+        print(f"inverters_info:          {results[14]}")
 
 
 if __name__ == "__main__":
