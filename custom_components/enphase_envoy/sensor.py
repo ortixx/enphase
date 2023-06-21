@@ -341,7 +341,7 @@ class EnvoyInverterEntity(CoordinatorEntity, SensorEntity):
 
         self.async_on_remove(
             async_track_state_change_event(
-                self.hass, self._sensor_source.entity_id, calc_change
+                self.hass, calc_change
             )
         )
 
