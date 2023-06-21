@@ -208,18 +208,23 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 if attempt == 2:
                     raise e
 
-    async def _async_post(self, url, data, cookies=None, **kwargs):
+    async def _async_post(self, url, data=None, **kwargs):
         _LOGGER.debug("HTTP POST Attempt: %s", url)
         _LOGGER.debug("HTTP POST Data: %s", data)
         try:
             async with self.async_client as client:
                 resp = await client.post(
-                    url, cookies=cookies, data=data, timeout=60, **kwargs
+                    url,
+                    headers=self._authorization_header,
+                    cookies=self._cookies,
+                    data=data,
+                    timeout=30,
+                    **kwargs,
                 )
                 _LOGGER.debug("HTTP POST %s: %s: %s", url, resp, resp.text)
                 _LOGGER.debug("HTTP POST Cookie: %s", resp.cookies)
                 return resp
-        except httpx.TransportError:  # pylint: disable=try-except-raise
+        except httpx.TransportError:
             raise
 
     async def _async_put(self, url, data, **kwargs):
@@ -356,7 +361,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         if resp.status_code == 301:
             raise SwitchToHTTPS
 
-    async def getData(self, getInverters=True):  # pylint: disable=invalid-name
+    async def getData(self, getInverters=True):
         """Fetch data from the endpoint and if inverters selected default"""
         """to fetching inverter data."""
 
@@ -880,20 +885,20 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         return None
 
     async def envoy_info(self):
-        device_data = { }
+        device_data = {}
 
         if self.endpoint_home_json_results:
-            home_json = self.endpoint_home_json_results.json ()
+            home_json = self.endpoint_home_json_results.json()
             if "update_status" in home_json:
-                device_data ["update_status"] = home_json ["update_status"]
-                device_data ["software_build_epoch"] = home_json ["software_build_epoch"]
+                device_data["update_status"] = home_json["update_status"]
+                device_data["software_build_epoch"] = home_json["software_build_epoch"]
 
         if self.endpoint_info_results:
             try:
-                data = xmltodict.parse (self.endpoint_info_results.text)
-                device_data ["software"] = data ["envoy_info"] ["device"] ["software"]
-                device_data ["pn"] = data ["envoy_info"] ["device"] ["pn"]
-            except (KeyError,IndexError,TypeError,AttributeError):
+                data = xmltodict.parse(self.endpoint_info_results.text)
+                device_data["software"] = data["envoy_info"]["device"]["software"]
+                device_data["pn"] = data["envoy_info"]["device"]["pn"]
+            except (KeyError, IndexError, TypeError, AttributeError):
                 pass
 
         return device_data
