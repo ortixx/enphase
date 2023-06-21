@@ -112,6 +112,7 @@ class EnvoyInverterEntity (CoordinatorEntity,BinarySensorEntity):
             serial_number,
             coordinator,
     ):
+        serial_number = None
         self.entity_description = description
         self._name = name
         self._serial_number = serial_number

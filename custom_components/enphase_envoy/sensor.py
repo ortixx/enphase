@@ -164,6 +164,7 @@ class CoordinatedEnvoyEntity(EnvoyEntity, CoordinatorEntity):
             self, description, name, device_name, device_serial_number, serial_number
         )
         CoordinatorEntity.__init__(self, coordinator)
+        serial_number = None
 
     @property
     def native_value(self):

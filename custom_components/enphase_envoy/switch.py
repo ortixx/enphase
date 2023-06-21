@@ -46,6 +46,7 @@ class EnvoyProductionSwitchEntity(CoordinatorEntity, SwitchEntity):
         coordinator,
         reader,
     ):
+        serial_number = None
         self.entity_description = description
         self._name = name
         self._serial_number = serial_number
