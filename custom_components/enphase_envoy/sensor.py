@@ -303,48 +303,6 @@ class EnvoyInverterEntity(CoordinatorEntity, SensorEntity):
             hw_version=hw_version,
         )
 
-    async def async_added_to_hass(self):
-        """Handle entity which will be added."""
-        await super().async_added_to_hass()
-
-        @callback
-        def calc_change(event):
-            """Handle the sensor state changes."""
-            old_state = event.data.get("old_state")
-            new_state = event.data.get("new_state")
-
-            if (
-                old_state is None
-                or old_state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE)
-                or new_state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE)
-            ):
-                self._state = 0
-
-            else:
-                old_state_value = int(old_state.state)
-                new_state_value = int(new_state.state)
-
-                if self._positive:
-                    if new_state_value > old_state_value:
-                        self._state = new_state_value - old_state_value
-                    else:
-                        self._state = 0
-
-                else:
-                    if old_state_value > new_state_value:
-                        self._state = old_state_value - new_state_value
-                    else:
-                        self._state = 0
-
-            self._attr_last_reset = datetime.datetime.now()
-            self.async_write_ha_state()
-
-        self.async_on_remove(
-            async_track_state_change_event(
-                self.hass,self._sensor_source.entity_id,calc_change
-            )
-        )
-
     @property
     def native_value(self):
         """Return the state of the sensor."""
