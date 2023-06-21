@@ -15,8 +15,6 @@ from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    BATTERY_ENERGY_DISCHARGED_SENSOR,
-    BATTERY_ENERGY_CHARGED_SENSOR,
     COORDINATOR,
     DOMAIN,
     NAME,
