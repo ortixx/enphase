@@ -26,20 +26,14 @@ ENDPOINT_URL_ENSEMBLE_INVENTORY = "https://{}/ivp/ensemble/inventory"
 ENDPOINT_URL_HOME_JSON = "https://{}/home.json"
 ENDPOINT_URL_DEVSTATUS = "https://{}/ivp/peb/devstatus"
 ENDPOINT_URL_PRODUCTION_POWER = "https://{}/ivp/mod/603980032/mode/power"
-
-# pylint: disable=pointless-string-statement
+ENDPOINT_URL_INFO_XML = "https://{}/info.xml"
 
 ENVOY_MODEL_S = "PC"
 ENVOY_MODEL_C = "P"
 
-LOGIN_URL = "https://entrez.enphaseenergy.com/login_main_page"
-TOKEN_URL = "https://entrez.enphaseenergy.com/entrez_tokens"
-
-# paths for the enlighten 6 month owner token
-ENLIGHTEN_AUTH_FORM_URL = "https://enlighten.enphaseenergy.com"
-ENLIGHTEN_TOKEN_URL = (
-    "https://enlighten.enphaseenergy.com/entrez-auth-token?serial_num={}"
-)
+# paths for the enlighten installer token
+ENLIGHTEN_AUTH_URL = "https://enlighten.enphaseenergy.com/login/login.json"
+ENLIGHTEN_TOKEN_URL = "https://entrez.enphaseenergy.com/tokens"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,34 +52,14 @@ class SwitchToHTTPS(Exception):
     pass
 
 
-class EnvoyReader:  # pylint: disable=too-many-instance-attributes
+class EnvoyReader:
     """Instance of EnvoyReader"""
 
     # P0 for older Envoy model C, s/w < R3.9 no json pages
     # P for production data only (ie. Envoy model C, s/w >= R3.9)
     # PC for production and consumption data (ie. Envoy model S)
 
-    message_battery_not_available = (
-        "Battery storage data not available for your Envoy device."
-    )
-
-    message_consumption_not_available = (
-        "Consumption data not available for your Envoy device."
-    )
-
-    message_grid_status_not_available = (
-        "Grid status not available for your Envoy device."
-    )
-
-    message_production_power_not_available = (
-        "Production power status not available for your Envoy device."
-    )
-
-    message_devstatus_not_available = (
-        "Inverter status not available for your Envoy device."
-    )
-
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         host,
         inverters=False,
@@ -109,8 +83,9 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         self.endpoint_home_json_results = None
         self.endpoint_devstatus = None
         self.endpoint_production_power = None
-        self.isMeteringEnabled = False  # pylint: disable=invalid-name
-        self.installer_access = False
+        self.endpoint_info_results = None
+        self.endpoint_inventory_results = None
+        self.isMeteringEnabled = False
         self._async_client = async_client
         self._authorization_header = None
         self._cookies = None
@@ -124,9 +99,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
     @property
     def async_client(self):
         """Return the httpx client."""
-        return self._async_client or httpx.AsyncClient(
-            verify=False, headers=self._authorization_header, cookies=self._cookies
-        )
+        return self._async_client or httpx.AsyncClient(verify=False)
 
     async def _update(self):
         """Update the data."""
@@ -136,8 +109,12 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
             self.endpoint_type == ENVOY_MODEL_S and not self.isMeteringEnabled
         ):
             await self._update_from_p_endpoint()
-        if self.installer_access:
-            await self._update_from_installer_endpoint()
+
+        await self._update_from_installer_endpoint()
+        await self._update_endpoint("endpoint_info_results", ENDPOINT_URL_INFO_XML)
+        await self._update_endpoint(
+            "endpoint_inventory_results", ENDPOINT_URL_INVENTORY
+        )
 
     async def _update_from_pc_endpoint(self):
         """Update from PC endpoint."""
@@ -180,15 +157,20 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         """Retry 3 times to fetch the url if there is a transport error."""
         for attempt in range(3):
             _LOGGER.debug(
-                "HTTP GET Attempt #%s: %s: Header:%s",
+                "HTTP GET Attempt #%s: %s: Header:%s Cookies:%s",
                 attempt + 1,
                 url,
                 self._authorization_header,
+                self._cookies,
             )
             try:
                 async with self.async_client as client:
                     resp = await client.get(
-                        url, headers=self._authorization_header, timeout=60, **kwargs
+                        url,
+                        headers=self._authorization_header,
+                        cookies=self._cookies,
+                        timeout=30,
+                        **kwargs,
                     )
                     if resp.status_code == 401 and attempt < 2:
                         _LOGGER.debug(
@@ -237,13 +219,14 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 resp = await client.put(
                     url,
                     headers=self._authorization_header,
+                    cookies=self._cookies,
                     json=data,
                     timeout=60,
                     **kwargs,
                 )
                 _LOGGER.debug("HTTP PUT %s: %s: %s", url, resp, resp.text)
                 return resp
-        except httpx.TransportError:  # pylint: disable=try-except-raise
+        except httpx.TransportError:
             raise
 
     async def _fetch_owner_token_json(self):
@@ -252,54 +235,35 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         :return:
         """
         async with self.async_client as client:
-            # login to the enlighten UI
-
-            resp = await client.get(ENLIGHTEN_AUTH_FORM_URL)
-            soup = BeautifulSoup(resp.text, features="html.parser")
-            # grab the single use auth token for this form
-            authenticity_token = soup.find("input", {"name": "authenticity_token"})[
-                "value"
-            ]
-            # and the form action itself
-            form_action = soup.find("input", {"name": "authenticity_token"}).parent[
-                "action"
-            ]
+            # login to Enlighten
             payload_login = {
-                "authenticity_token": authenticity_token,
                 "user[email]": self.enlighten_user,
                 "user[password]": self.enlighten_pass,
             }
-            resp = await client.post(
-                ENLIGHTEN_AUTH_FORM_URL + form_action, data=payload_login, timeout=60
-            )
+            resp = await client.post(ENLIGHTEN_AUTH_URL, data=payload_login, timeout=30)
             if resp.status_code >= 400:
-                raise Exception("Could not Authenticate via Enlighten auth form")
+                raise Exception("Could not Authenticate via Enlighten")
 
-            # now that we're in a logged in session, we can request the 6 month owner token via enlighten
-            resp = await client.get(
-                ENLIGHTEN_TOKEN_URL.format(self.enlighten_serial_num)
+            # now that we're in a logged in session, we can request the installer token
+            login_data = resp.json()
+            payload_token = {
+                "session_id": login_data["session_id"],
+                "serial_num": self.enlighten_serial_num,
+                "username": self.enlighten_user,
+            }
+            resp = await client.post(
+                ENLIGHTEN_TOKEN_URL, json=payload_token, timeout=30
             )
-            resp_json = resp.json()
-            if "token" not in resp_json.keys():
-                msg = resp_json.get(
-                    "message", "Unknown error returned from enlighten: " + resp.text
-                )
-                raise Exception("Could not get 6 month token: " + msg)
-            return resp_json
+            if resp.status_code != 200:
+                raise Exception("Could not get installer token")
+            return resp.text
 
-    async def _getEnphaseToken(  # pylint: disable=invalid-name
-        self,
-    ):
-        payload_login = {
-            "username": self.enlighten_user,
-            "password": self.enlighten_pass,
-        }
+    async def _getEnphaseToken(self):
+        self._token = await self._fetch_owner_token_json()
+        _LOGGER.debug("Commissioned Token")
 
-        token_json = await self._fetch_owner_token_json()
-
-        self._token = token_json["token"]
-        time_left_days = (token_json["expires_at"] - time.time()) / (24 * 3600)
-        _LOGGER.debug("Commissioned Token valid for %s days", time_left_days)
+        if self._is_enphase_token_expired(self._token):
+            raise Exception("Just received token already expired")
 
         await self._refresh_token_cookies()
 
@@ -316,24 +280,13 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
             ENDPOINT_URL_CHECK_JWT.format(self.host)
         )
 
-        # Parse the HTML return from Envoy and check the text
-        soup = BeautifulSoup(token_validation_html.text, features="html.parser")
-        token_validation = soup.find("h2").contents[0]
-        if self._is_enphase_token_valid(token_validation):
+        if token_validation.status_code == 200:
             # set the cookies for future clients
-            self._cookies = token_validation_html.cookies
+            self._cookies = token_validation.cookies
             return True
 
         # token not valid if we get here
         return False
-
-    def _is_enphase_token_valid(self, response):
-        if response == "Valid token.":
-            _LOGGER.debug("Token is valid")
-            return True
-        else:
-            _LOGGER.debug("Invalid token!")
-            return False
 
     def _is_enphase_token_expired(self, token):
         decode = jwt.decode(
@@ -449,12 +402,11 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 + "'."
             )
 
-        try:
-            await self._update_from_installer_endpoint()
-        except httpx.HTTPError:
-            pass
-        if self.endpoint_production_power:
-            self.installer_access = True
+        await self._update_from_installer_endpoint()
+        await self._update_endpoint("endpoint_info_results", ENDPOINT_URL_INFO_XML)
+        await self._update_endpoint(
+            "endpoint_inventory_results", ENDPOINT_URL_INVENTORY
+        )
 
     async def get_full_serial_number(self):
         """Method to get the  Envoy serial number."""
@@ -904,17 +856,17 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         return device_data
 
     async def inverters_info(self):
-        response_dict = { }
+        response_dict = {}
         try:
-            devinfo = self.endpoint_inventory_results.json ()
+            devinfo = self.endpoint_inventory_results.json()
             for item in devinfo:
-                if "type" in item and item ["type"] == "PCU":
-                    for device in item ["devices"]:
-                        if device ["dev_type"] == 12:
+                if "type" in item and item["type"] == "PCU":
+                    for device in item["devices"]:
+                        if device["dev_type"] == 12:
                             # this is a relay
                             continue
-                        response_dict [device ["serial_num"]] = device
-        except (KeyError,IndexError,TypeError,AttributeError):
+                        response_dict[device["serial_num"]] = device
+        except (KeyError, IndexError, TypeError, AttributeError):
             pass
 
         return response_dict
@@ -985,10 +937,16 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
+        "-d", "--debug", dest="debug", help="Enable debug logging", action="store_true"
+    )
+    parser.add_argument(
         dest="host",
         help="Envoy IP address or host name",
     )
     args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
 
     TESTREADER = EnvoyReader(
         host=args.host,
