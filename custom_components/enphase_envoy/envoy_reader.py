@@ -677,18 +677,6 @@ class EnvoyReader:
 
         return response_dict
 
-    async def grid_status(self):
-        """Return grid status reported by Envoy"""
-        if self.endpoint_home_json_results is not None:
-            home_json = self.endpoint_home_json_results.json()
-            if (
-                "enpower" in home_json.keys()
-                and "grid_status" in home_json["enpower"].keys()
-            ):
-                return home_json["enpower"]["grid_status"]
-
-        return self.message_grid_status_not_available
-
     async def production_power(self):
         """Return production power status reported by Envoy"""
         if self.endpoint_production_power is not None:

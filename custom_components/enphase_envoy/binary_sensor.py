@@ -35,18 +35,6 @@ async def async_setup_entry(
                             coordinator,
                         )
                     )
-        elif sensor_description.key == "grid_status":
-            if coordinator.data.get("grid_status") is not None:
-                entities.append(
-                    EnvoyGridStatusEntity(
-                        sensor_description,
-                        sensor_description.name,
-                        name,
-                        config_entry.unique_id,
-                        None,
-                        coordinator,
-                    )
-                )
 
         elif sensor_description.key == "relays":
             if coordinator.data.get("relays") is not None:
@@ -84,22 +72,6 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class EnvoyGridStatusEntity(CoordinatorEntity, BinarySensorEntity):
-    def __init__(
-        self,
-        description,
-        name,
-        device_name,
-        device_serial_number,
-        serial_number,
-        coordinator,
-    ):
-        self.entity_description = description
-        self._name = name
-        self._serial_number = serial_number
-        self._device_name = device_name
-        self._device_serial_number = device_serial_number
-        CoordinatorEntity.__init__(self, coordinator)
 
     @property
     def icon(self):
@@ -130,12 +102,6 @@ class EnvoyGridStatusEntity(CoordinatorEntity, BinarySensorEntity):
             model="Envoy",
             name=self._device_name,
         )
-
-    @property
-    def is_on(self) -> bool:
-        """Return the status of the requested attribute."""
-        return self.coordinator.data.get("grid_status") == "closed"
-
 
 class EnvoyInverterEntity(CoordinatorEntity, BinarySensorEntity):
     def __init__(

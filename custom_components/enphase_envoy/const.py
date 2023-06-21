@@ -267,11 +267,6 @@ BINARY_SENSORS = (
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
     ),
     BinarySensorEntityDescription(
-        key="grid_status",
-        name="Grid Status",
-        device_class=BinarySensorDeviceClass.CONNECTIVITY,
-    ),
-    BinarySensorEntityDescription(
         key="relays",
         name="Relay",
         device_class=BinarySensorDeviceClass.POWER,
