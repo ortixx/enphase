@@ -81,7 +81,6 @@ class EnvoyReader:
         self.endpoint_ensemble_json_results = None
         self.endpoint_home_json_results = None
         self.endpoint_devstatus = None
-        self.endpoint_production_power = None
         self.endpoint_info_results = None
         self.endpoint_inventory_results = None
         self.isMeteringEnabled = False
@@ -836,7 +835,6 @@ class EnvoyReader:
                 self.lifetime_production(),
                 self.lifetime_consumption(),
                 self.inverters_production(),
-                self.production_power(),
                 self.inverters_status(),
                 self.relay_status(),
                 self.firmware_data(),
@@ -855,7 +853,6 @@ class EnvoyReader:
         print(f"lifetime_production:     {results[6]}")
         print(f"lifetime_consumption:    {results[7]}")
         print(f"inverters_production:    {results[8]}")
-        print(f"production_power:        {results[9]}")
         print(f"inverters_status:        {results[10]}")
         print(f"relays:                  {results[11]}")
         print(f"envoy_info:              {results[12]}")
