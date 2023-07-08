@@ -25,6 +25,7 @@ ENDPOINT_URL_CHECK_JWT = "https://{}/auth/check_jwt"
 ENDPOINT_URL_ENSEMBLE_INVENTORY = "https://{}/ivp/ensemble/inventory"
 ENDPOINT_URL_HOME_JSON = "https://{}/home.json"
 ENDPOINT_URL_DEVSTATUS = "https://{}/ivp/peb/devstatus"
+ENDPOINT_URL_PRODUCTION_POWER = "https://{}/ivp/mod/603980032/mode/power"
 ENDPOINT_URL_INFO_XML = "https://{}/info.xml"
 
 ENVOY_MODEL_S = "PC"
@@ -81,6 +82,7 @@ class EnvoyReader:
         self.endpoint_ensemble_json_results = None
         self.endpoint_home_json_results = None
         self.endpoint_devstatus = None
+        self.endpoint_production_power = None
         self.endpoint_info_results = None
         self.endpoint_inventory_results = None
         self.isMeteringEnabled = False
@@ -136,6 +138,10 @@ class EnvoyReader:
         """Update from installer endpoint."""
         await self._update_endpoint(
             "endpoint_devstatus", ENDPOINT_URL_DEVSTATUS,
+        )
+        await self._update_endpoint(
+            "endpoint_production_power",
+            ENDPOINT_URL_PRODUCTION_POWER,
         )
 
     async def _update_endpoint(self, attr, url, only_on_success=False):
@@ -671,6 +677,23 @@ class EnvoyReader:
 
         return response_dict
 
+    async def production_power(self):
+        """Return production power status reported by Envoy"""
+        if self.endpoint_production_power is not None:
+            power_json = self.endpoint_production_power.json()
+            if "powerForcedOff" in power_json.keys():
+                return not power_json["powerForcedOff"]
+
+        return None
+
+    async def set_production_power(self, power_on):
+        if self.endpoint_production_power is not None:
+            formatted_url = ENDPOINT_URL_PRODUCTION_POWER.format(self.host)
+            power_forced_off = 0 if power_on else 1
+            result = await self._async_put(
+                formatted_url, data={"length": 1, "arr": [power_forced_off]}
+            )
+
     async def inverters_status(self):
         """Running getData() beforehand will set self.enpoint_type and self.isDataRetrieved"""
         """so that this method will only read data from stored variables"""
@@ -835,6 +858,7 @@ class EnvoyReader:
                 self.lifetime_production(),
                 self.lifetime_consumption(),
                 self.inverters_production(),
+                self.production_power(),
                 self.inverters_status(),
                 self.relay_status(),
                 self.firmware_data(),
@@ -853,6 +877,7 @@ class EnvoyReader:
         print(f"lifetime_production:     {results[6]}")
         print(f"lifetime_consumption:    {results[7]}")
         print(f"inverters_production:    {results[8]}")
+        print(f"production_power:        {results[9]}")
         print(f"inverters_status:        {results[10]}")
         print(f"relays:                  {results[11]}")
         print(f"envoy_info:              {results[12]}")

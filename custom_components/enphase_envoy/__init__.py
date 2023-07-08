@@ -106,6 +106,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                         description.key
                     ] = await envoy_reader.lifetime_consumption_phase(description.key)
 
+            data["production_power"] = await envoy_reader.production_power()
             data["envoy_info"] = await envoy_reader.envoy_info()
             data["inverters_info"] = await envoy_reader.inverters_info()
 
