@@ -11,12 +11,23 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.components import zeroconf
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_NAME,
+    CONF_PASSWORD,
+    CONF_USERNAME,
+)
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN, CONF_SERIAL
+from .const import (
+    DOMAIN,
+    CONF_SERIAL,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_REALTIME_UPDATE_THROTTLE,
+    DISABLE_INSTALLER_ACCOUNT_USE,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,6 +42,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> EnvoyRead
         enlighten_pass=data[CONF_PASSWORD],
         inverters=False,
         enlighten_serial_num=data[CONF_SERIAL],
+        disable_installer_account_use=data[DISABLE_INSTALLER_ACCOUNT_USE],
     )
 
     try:
@@ -69,6 +81,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         schema[vol.Required(CONF_SERIAL, default=self.unique_id)] = str
         schema[vol.Required(CONF_USERNAME, default=self.username)] = str
         schema[vol.Required(CONF_PASSWORD, default="")] = str
+        schema[vol.Required(DISABLE_INSTALLER_ACCOUNT_USE, default=False)] = bool
 
         return vol.Schema(schema)
 
@@ -181,6 +194,66 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=self._async_generate_schema(),
             errors=errors,
         )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return EnvoyOptionsFlowHandler(config_entry)
+
+
+class EnvoyOptionsFlowHandler(config_entries.OptionsFlow):
+    """Envoy config flow options handler."""
+
+    def __init__(self, config_entry):
+        """Initialize Envoy options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(self, _user_input=None):
+        """Manage the options."""
+        return await self.async_step_user()
+
+    async def async_step_user(self, user_input=None):
+        """Handle a flow initialized by the user."""
+
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        schema = {
+            vol.Optional(
+                "time_between_update",
+                default=self.config_entry.options.get(
+                    "time_between_update", DEFAULT_SCAN_INTERVAL
+                ),
+            ): vol.All(vol.Coerce(int), vol.Range(min=5)),
+            vol.Optional(
+                "disable_negative_production",
+                default=self.config_entry.options.get(
+                    "disable_negative_production", False
+                ),
+            ): bool,
+            vol.Optional(
+                "enable_realtime_updates",
+                default=self.config_entry.options.get("enable_realtime_updates", False),
+            ): bool,
+            vol.Optional(
+                "realtime_update_throttle",
+                default=self.config_entry.options.get(
+                    "realtime_update_throttle", DEFAULT_REALTIME_UPDATE_THROTTLE
+                ),
+            ): vol.All(vol.Coerce(int), vol.Range(min=0)),
+            vol.Optional(
+                DISABLE_INSTALLER_ACCOUNT_USE,
+                default=(
+                    self.config_entry.options.get(
+                        DISABLE_INSTALLER_ACCOUNT_USE,
+                        self.config_entry.data.get(
+                            DISABLE_INSTALLER_ACCOUNT_USE, False
+                        ),
+                    )
+                ),
+            ): bool,
+        }
+        return self.async_show_form(step_id="user", data_schema=vol.Schema(schema))
 
 
 class CannotConnect(HomeAssistantError):

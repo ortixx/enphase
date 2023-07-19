@@ -30,7 +30,13 @@ COORDINATOR = "coordinator"
 NAME = "name"
 READER = "reader"
 
+DEFAULT_SCAN_INTERVAL = 60  # default in seconds
+DEFAULT_REALTIME_UPDATE_THROTTLE = 10
+
 CONF_SERIAL = "serial"
+
+LIVE_UPDATEABLE_ENTITIES = "live-update-entities"
+DISABLE_INSTALLER_ACCOUNT_USE = "disable_installer_account_use"
 
 SENSORS = (
     SensorEntityDescription(
@@ -45,13 +51,6 @@ SENSORS = (
         name="Today's Energy Production",
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        device_class=SensorDeviceClass.ENERGY,
-    ),
-    SensorEntityDescription(
-        key="seven_days_production",
-        name="Last Seven Days Energy Production",
-        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
-        state_class=SensorStateClass.TOTAL,
         device_class=SensorDeviceClass.ENERGY,
     ),
     SensorEntityDescription(
@@ -73,13 +72,6 @@ SENSORS = (
         name="Today's Energy Consumption",
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        device_class=SensorDeviceClass.ENERGY,
-    ),
-    SensorEntityDescription(
-        key="seven_days_consumption",
-        name="Last Seven Days Energy Consumption",
-        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
-        state_class=SensorStateClass.TOTAL,
         device_class=SensorDeviceClass.ENERGY,
     ),
     SensorEntityDescription(
@@ -124,6 +116,34 @@ SENSORS = (
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TEMPERATURE,
     ),
+    SensorEntityDescription(
+        key="batteries",
+        name="Battery",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.BATTERY,
+    ),
+    SensorEntityDescription(
+        key="total_battery_percentage",
+        name="Total Battery Percentage",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.BATTERY,
+    ),
+    SensorEntityDescription(
+        key="current_battery_capacity",
+        name="Current Battery Capacity",
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.ENERGY,
+    ),
+    SensorEntityDescription(
+        key="voltage",
+        name="Current Voltage",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+    ),
 )
 
 PHASE_SENSORS = (
@@ -149,6 +169,13 @@ PHASE_SENSORS = (
         device_class=SensorDeviceClass.ENERGY,
     ),
     SensorEntityDescription(
+        key="voltage_l1",
+        name="Current Voltage L1",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+    ),
+    SensorEntityDescription(
         key="production_l2",
         name="Current Power Production L2",
         native_unit_of_measurement=UnitOfPower.WATT,
@@ -170,6 +197,13 @@ PHASE_SENSORS = (
         device_class=SensorDeviceClass.ENERGY,
     ),
     SensorEntityDescription(
+        key="voltage_l2",
+        name="Current Voltage L2",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+    ),
+    SensorEntityDescription(
         key="production_l3",
         name="Current Power Production L3",
         native_unit_of_measurement=UnitOfPower.WATT,
@@ -189,6 +223,13 @@ PHASE_SENSORS = (
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
         device_class=SensorDeviceClass.ENERGY,
+    ),
+    SensorEntityDescription(
+        key="voltage_l3",
+        name="Current Voltage L3",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
     ),
     SensorEntityDescription(
         key="consumption_l1",
@@ -267,6 +308,11 @@ BINARY_SENSORS = (
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
     ),
     BinarySensorEntityDescription(
+        key="grid_status",
+        name="Grid Status",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+    ),
+    BinarySensorEntityDescription(
         key="relays",
         name="Relay",
         device_class=BinarySensorDeviceClass.POWER,
@@ -278,7 +324,23 @@ BINARY_SENSORS = (
     ),
 )
 
-PRODUCTION_POWER_SWITCH = SwitchEntityDescription(
+BATTERY_ENERGY_DISCHARGED_SENSOR = SensorEntityDescription(
+    key="battery_energy_discharged",
+    name="Battery Energy Discharged",
+    native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+    state_class=SensorStateClass.TOTAL,
+    device_class=SensorDeviceClass.ENERGY,
+)
+
+BATTERY_ENERGY_CHARGED_SENSOR = SensorEntityDescription(
+    key="battery_energy_charged",
+    name="Battery Energy Charged",
+    native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+    state_class=SensorStateClass.TOTAL,
+    device_class=SensorDeviceClass.ENERGY,
+)
+
+PRODUCION_POWER_SWITCH = SwitchEntityDescription(
     key="production_power",
     name="Production",
     device_class=SwitchDeviceClass.SWITCH,
