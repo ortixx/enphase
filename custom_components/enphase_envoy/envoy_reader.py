@@ -1,26 +1,24 @@
 """Module to read production and consumption values from an Enphase Envoy on the local network."""
 import argparse
 import asyncio
+import base64
 import datetime
-import time
-import logging
-import jwt
-import xmltodict
-import httpx
+import hashlib
 import ipaddress
 import json
+import logging
 import os
-
-from jsonpath import jsonpath
-from functools import partial
-
-import hashlib
-import base64
 import random
 import string
+import time
+from functools import partial
+from json.decoder import JSONDecodeError
 from urllib import parse
 
-from json.decoder import JSONDecodeError
+import httpx
+import jwt
+import xmltodict
+from jsonpath import jsonpath
 
 ENDPOINT_URL_INVENTORY = "https://{}/inventory.json"
 ENDPOINT_URL_PRODUCTION_JSON = "https://{}/production.json?details=1"
