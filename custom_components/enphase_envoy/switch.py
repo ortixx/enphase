@@ -1,11 +1,11 @@
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.helpers.entity import DeviceInfo
 
-from .const import COORDINATOR,DOMAIN,NAME,ICON,PRODUCION_POWER_SWITCH,READER
+from .const import COORDINATOR, DOMAIN, NAME, ICON, PRODUCTION_POWER_SWITCH, READER
 
 
 async def async_setup_entry(
@@ -22,8 +22,8 @@ async def async_setup_entry(
     if coordinator.data.get("production_power") is not None:
         entities.append(
             EnvoyProductionSwitchEntity(
-                PRODUCION_POWER_SWITCH,
-                PRODUCION_POWER_SWITCH.name,
+                PRODUCTION_POWER_SWITCH,
+                PRODUCTION_POWER_SWITCH.name,
                 name,
                 config_entry.unique_id,
                 None,
@@ -46,6 +46,7 @@ class EnvoyProductionSwitchEntity(CoordinatorEntity, SwitchEntity):
         coordinator,
         reader,
     ):
+        serial_number = None
         self.entity_description = description
         self._name = name
         self._serial_number = serial_number
